@@ -1,0 +1,5 @@
+.env
+images/
+node_modules/
+firebase.ts
+firebase.js
