@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Inbox, Send, PenTool, Menu, X, User, Home } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import ThemeToggle from '../UI/ThemeToggle';
-import SearchBar from '../UI/SearchBar';
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
@@ -12,11 +11,6 @@ const Sidebar: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const isActive = (path: string) => location.pathname === path;
-
-  const handleSearch = (query: string) => {
-    // Implement search logic based on current route
-    console.log('Searching:', query);
-  };
 
   const navItems = [
     {
@@ -50,31 +44,6 @@ const Sidebar: React.FC = () => {
       >
         {isExpanded ? <X size={24} /> : <Menu size={24} />}
       </button>
-
-      {/* Logo Section */}
-      <Link 
-        to="/dashboard"
-        className="p-4 flex items-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-      >
-        <img 
-          src="/namestation-logo.svg" 
-          alt="Namestation" 
-          className="h-8 w-8"
-        />
-        {isExpanded && (
-          <span className="ml-2 font-semibold text-gray-800 dark:text-white">
-            Namestation
-          </span>
-        )}
-      </Link>
-
-      {/* Search Bar */}
-      <div className="px-4 py-2">
-        <SearchBar 
-          onSearch={handleSearch}
-          placeholder={isExpanded ? "Search..." : ""}
-        />
-      </div>
 
       {/* Navigation */}
       <nav className="flex-1 mt-4 px-4">
