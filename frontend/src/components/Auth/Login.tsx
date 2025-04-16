@@ -8,13 +8,13 @@ const Login: React.FC = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <div className="p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md w-full max-w-md">
         <div className="flex justify-center mb-6">
-          <img src="/tensorgo-logo.svg" alt="TensorGo Logo" className="h-12" />
+          <img src="/tensorgo-logo.svg" alt="Namestation Logo" className="h-12" />
         </div>
         <h1 className="text-2xl font-bold text-center text-gray-800 dark:text-white mb-6">
-          Communication Platform
+          Namestation
         </h1>
         <p className="text-gray-600 dark:text-gray-300 mb-6 text-center">
-          Log in with your Google account to access the communication platform
+          Log in with your Google account to access the platform
         </p>
         <button
           onClick={login}

@@ -1,13 +1,29 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Inbox, Send, PenTool } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Inbox, Send, PenTool, Menu, X, User, Home } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import ThemeToggle from '../UI/ThemeToggle';
+import SearchBar from '../UI/SearchBar';
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const isActive = (path: string) => location.pathname === path;
 
+  const handleSearch = (query: string) => {
+    // Implement search logic based on current route
+    console.log('Searching:', query);
+  };
+
   const navItems = [
+    {
+      label: 'Dashboard',
+      path: '/dashboard',
+      icon: <Home size={20} />,
+    },
     {
       label: 'Inbox',
       path: '/inbox',
@@ -26,8 +42,42 @@ const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 bg-gray-100 dark:bg-gray-800 min-h-full">
-      <nav className="mt-8 px-4">
+    <aside className={`bg-gray-100 dark:bg-gray-800 min-h-full flex flex-col transition-all duration-300 ${isExpanded ? 'w-64' : 'w-20'}`}>
+      {/* Toggle Button */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="p-4 hover:bg-gray-200 dark:hover:bg-gray-700 lg:hidden"
+      >
+        {isExpanded ? <X size={24} /> : <Menu size={24} />}
+      </button>
+
+      {/* Logo Section */}
+      <Link 
+        to="/dashboard"
+        className="p-4 flex items-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+      >
+        <img 
+          src="/namestation-logo.svg" 
+          alt="Namestation" 
+          className="h-8 w-8"
+        />
+        {isExpanded && (
+          <span className="ml-2 font-semibold text-gray-800 dark:text-white">
+            Namestation
+          </span>
+        )}
+      </Link>
+
+      {/* Search Bar */}
+      <div className="px-4 py-2">
+        <SearchBar 
+          onSearch={handleSearch}
+          placeholder={isExpanded ? "Search..." : ""}
+        />
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 mt-4 px-4">
         <ul className="space-y-2">
           {navItems.map((item) => (
             <li key={item.path}>
@@ -40,12 +90,50 @@ const Sidebar: React.FC = () => {
                 }`}
               >
                 <span className="mr-3">{item.icon}</span>
-                {item.label}
+                {isExpanded && item.label}
               </Link>
             </li>
           ))}
         </ul>
       </nav>
+
+      {/* User Controls at Bottom */}
+      <div className="mt-auto p-4 border-t border-gray-200 dark:border-gray-700">
+        {user && (
+          <div className="flex flex-col space-y-4">
+            <button
+              onClick={() => navigate('/profile')}
+              className={`flex items-center px-4 py-2 rounded-lg transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 ${
+                isActive('/profile') ? 'bg-blue-100 dark:bg-blue-900' : ''
+              }`}
+            >
+              {user.picture ? (
+                <img
+                  src={user.picture}
+                  alt={user.name}
+                  className="h-8 w-8 rounded-full"
+                />
+              ) : (
+                <User size={20} />
+              )}
+              {isExpanded && (
+                <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {user.name}
+                </span>
+              )}
+            </button>
+            <div className="flex items-center justify-between px-4">
+              <ThemeToggle />
+              <button
+                onClick={logout}
+                className="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+              >
+                {isExpanded ? 'Logout' : ''}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </aside>
   );
 };
