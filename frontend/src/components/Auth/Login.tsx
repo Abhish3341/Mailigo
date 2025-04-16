@@ -1,18 +1,23 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
+import Button from '../UI/Button';
 
 const Login: React.FC = () => {
   const { login, loading } = useAuth();
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-      <div className="p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md w-full max-w-md">
-        <div className="flex justify-center mb-6">
-          <img src="/tensorgo-logo.svg" alt="Namestation Logo" className="h-12" />
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+        <div className="flex flex-col items-center mb-8">
+          <img 
+            src="/namestation-logo.svg" 
+            alt="Namestation" 
+            className="h-16 w-16 mb-4"
+          />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Welcome to Namestation
+          </h2>
         </div>
-        <h1 className="text-2xl font-bold text-center text-gray-800 dark:text-white mb-6">
-          Namestation
-        </h1>
         <p className="text-gray-600 dark:text-gray-300 mb-6 text-center">
           Log in with your Google account to access the platform
         </p>
