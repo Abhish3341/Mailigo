@@ -48,7 +48,7 @@ const Login: React.FC = () => {
       <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
         <div className="flex flex-col items-center mb-8">
           <img 
-            src="/namestation-logo.svg" 
+            src="/mailigo-logo.svg" 
             alt="Mailigo" 
             className="h-16 w-16 mb-4"
           />

@@ -42,6 +42,21 @@ const Sidebar: React.FC = () => {
 
   return (
     <aside className={`bg-gray-100 dark:bg-gray-800 min-h-full flex flex-col transition-all duration-300 ${isExpanded ? 'w-64' : 'w-20'}`}>
+      <div className="p-4 flex items-center">
+        <Link to="/dashboard" className="flex items-center">
+          <img 
+            src="/mailigo-logo.svg" 
+            alt="Mailigo" 
+            className="h-8 w-8"
+          />
+          {isExpanded && (
+            <span className="ml-2 text-xl font-semibold text-gray-900 dark:text-white">
+              Mailigo
+            </span>
+          )}
+        </Link>
+      </div>
+
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="p-4 hover:bg-gray-200 dark:hover:bg-gray-700 lg:hidden"
