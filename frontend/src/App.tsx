@@ -52,7 +52,7 @@ const App: React.FC = () => {
                 path="/profile"
                 element={<ProtectedRoute element={<ProfilePage />} />}
               />
-              <Route path="/" element={<Navigate to="/dashboard" />} />
+              <Route path="/" element={<Navigate to="/login" />} />
             </Routes>
           </Layout>
         </Router>
