@@ -2,10 +2,12 @@ import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Login: React.FC = () => {
   const { login } = useAuth();
   const [error, setError] = React.useState<string>('');
+  const navigate = useNavigate(); // 🔁 navigation hook
 
   const googleLogin = useGoogleLogin({
     onSuccess: async (response) => {
@@ -18,23 +20,20 @@ const Login: React.FC = () => {
           }
         );
 
-        // Debug: log the URL being hit
-        console.log(
-          'Sending user data to:',
-          `${import.meta.env.VITE_API_BASE_URL}/auth/google`
-        );
-
-        // Send to our backend
+        // Send user data to backend
         const backendResponse = await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/auth/google`,
           userInfo.data
         );
 
-        // Save token
+        // Save token to localStorage
         localStorage.setItem('auth_token', backendResponse.data.token);
 
         // Update auth context
         await login(backendResponse.data.user);
+
+        // ✅ Redirect after successful login
+        navigate('/dashboard'); // Change path as needed
       } catch (error) {
         console.error('Login error:', error);
         setError('Failed to login. Please try again.');

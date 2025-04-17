@@ -2,6 +2,7 @@ import React from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLocation } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,8 +10,12 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user } = useAuth();
+  const location = useLocation();
 
-  if (!user) {
+  // Add this line to hide layout on login route
+  const isLoginPage = location.pathname === '/login';
+
+  if (!user || isLoginPage) {
     return <>{children}</>;
   }
 
