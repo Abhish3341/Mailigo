@@ -1,11 +1,13 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { User } from '../types';
+import { decodeToken } from '../utils/tokenUtils';
 
 interface AuthContextProps {
   user: User | null;
   loading: boolean;
-  login: () => void;
+  login: (token: string) => void;
   logout: () => void;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -15,60 +17,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkAuth = async () => {
-      try {
-        // This would be replaced with actual OAuth verification
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      } catch (error) {
-        console.error('Authentication check failed:', error);
-      } finally {
-        setLoading(false);
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      const decodedToken = decodeToken(token);
+      if (decodedToken) {
+        setUser({
+          id: decodedToken.id,
+          email: decodedToken.email,
+          firstname: decodedToken.firstname,
+          lastname: decodedToken.lastname,
+          isFirstLogin: decodedToken.isFirstLogin
+        });
       }
-    };
-
-    checkAuth();
+    }
+    setLoading(false);
   }, []);
 
-  const login = async () => {
-    // In a real app, this would redirect to Google OAuth
-    // This is a mock implementation
-    const mockGoogleLogin = () => {
-      return new Promise<User>((resolve) => {
-        setTimeout(() => {
-          const mockUser = {
-            id: '123456789',
-            name: 'Test User',
-            email: 'testuser@example.com',
-            picture: 'https://via.placeholder.com/150'
-          };
-          localStorage.setItem('user', JSON.stringify(mockUser));
-          resolve(mockUser);
-        }, 1000);
+  const login = (token: string) => {
+    localStorage.setItem('auth_token', token);
+    const decodedToken = decodeToken(token);
+    if (decodedToken) {
+      setUser({
+        id: decodedToken.id,
+        email: decodedToken.email,
+        firstname: decodedToken.firstname,
+        lastname: decodedToken.lastname,
+        isFirstLogin: decodedToken.isFirstLogin
       });
-    };
-
-    try {
-      setLoading(true);
-      const authenticatedUser = await mockGoogleLogin();
-      setUser(authenticatedUser);
-    } catch (error) {
-      console.error('Login failed:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+  };
+
   const logout = () => {
-    localStorage.removeItem('user');
+    localStorage.removeItem('auth_token');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

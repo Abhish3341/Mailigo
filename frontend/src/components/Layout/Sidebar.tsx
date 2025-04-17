@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Inbox, Send, PenTool, Menu, X, User, Home, LogOut } from 'lucide-react'; // Added LogOut
+import { Inbox, Send, PenTool, Menu, X, User, Home, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import ThemeToggle from '../UI/ThemeToggle';
 
@@ -35,6 +35,11 @@ const Sidebar: React.FC = () => {
     },
   ];
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <aside className={`bg-gray-100 dark:bg-gray-800 min-h-full flex flex-col transition-all duration-300 ${isExpanded ? 'w-64' : 'w-20'}`}>
       <button
@@ -50,10 +55,11 @@ const Sidebar: React.FC = () => {
             <li key={item.path}>
               <Link
                 to={item.path}
-                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${isActive(item.path)
-                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`}
+                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                  isActive(item.path)
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
               >
                 <span className="mr-3">{item.icon}</span>
                 {isExpanded && item.label}
@@ -68,18 +74,11 @@ const Sidebar: React.FC = () => {
           <div className="flex flex-col space-y-4">
             <button
               onClick={() => navigate('/profile')}
-              className={`flex items-center px-4 py-2 rounded-lg transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 ${isActive('/profile') ? 'bg-blue-100 dark:bg-blue-900' : ''
-                }`}
+              className={`flex items-center px-4 py-2 rounded-lg transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 ${
+                isActive('/profile') ? 'bg-blue-100 dark:bg-blue-900' : ''
+              }`}
             >
-              {user.picture ? (
-                <img
-                  src={user.picture}
-                  alt={`${user.firstname} ${user.lastname}`}
-                  className="h-8 w-8 rounded-full"
-                />
-              ) : (
-                <User size={20} />
-              )}
+              <User size={20} />
               {isExpanded && (
                 <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                   {user.firstname} {user.lastname}
@@ -90,17 +89,13 @@ const Sidebar: React.FC = () => {
             <div className="flex items-center justify-between px-4">
               <ThemeToggle />
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="flex items-center px-4 py-2 rounded-md transition-all text-[15px] font-medium text-gray-900 dark:text-gray-100 hover:bg-[#EF4444] hover:text-white"
               >
                 <LogOut size={20} className="mr-2" />
                 {isExpanded ? 'Logout' : ''}
               </button>
             </div>
-
-
-
-
           </div>
         )}
       </div>
