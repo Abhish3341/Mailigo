@@ -5,7 +5,7 @@ const connectDB = async () => {
         // Set strictQuery to false to prepare for Mongoose 7
         mongoose.set('strictQuery', false);
 
-        const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://abhinavaddress:abhinavaddress@cluster0.hr0ug6m.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
+        const conn = await mongoose.connect(process.env.MONGODB_URI , {
             useNewUrlParser: true,
             useUnifiedTopology: true,
             serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
