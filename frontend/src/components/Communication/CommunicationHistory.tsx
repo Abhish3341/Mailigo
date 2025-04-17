@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Email } from '../../types';
 import EmailItem from './EmailItem';
+import axiosInstance from '../../utils/axiosconfig';
 
 interface CommunicationHistoryProps {
   type: 'inbox' | 'sent';
@@ -9,70 +10,38 @@ interface CommunicationHistoryProps {
 const CommunicationHistory: React.FC<CommunicationHistoryProps> = ({ type }) => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Mock data - in a real app, this would fetch from the API
-    const mockEmails: Email[] = [
-      {
-        id: '1',
-        subject: 'Welcome to Mailigo Platform',
-        body: 'Thank you for signing up to our platform. We are excited to have you on board!',
-        from: 'support@mailigo.com',
-        to: ['testuser@example.com'],
-        createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-        read: true,
-      },
-      {
-        id: '2',
-        subject: 'Your account verification',
-        body: 'Please verify your email address to activate all features of your account.',
-        from: 'noreply@mailigo.com',
-        to: ['testuser@example.com'],
-        createdAt: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-        read: false,
-      },
-      {
-        id: '3',
-        subject: 'New feature announcement',
-        body: 'We are excited to announce our new AI-powered features for the platform.',
-        from: 'marketing@mailigo.com',
-        to: ['testuser@example.com'],
-        createdAt: new Date(Date.now() - 180000).toISOString(), // 3 minutes ago
-        read: false,
-      },
-    ];
+    const fetchEmails = async () => {
+      try {
+        setLoading(true);
+        const response = await axiosInstance.get(`/api/communications/${type}`);
+        setEmails(response.data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching emails:', err);
+        setError('Failed to load emails. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    const sentEmails: Email[] = [
-      {
-        id: '4',
-        subject: 'Regarding project timeline',
-        body: 'I wanted to discuss the project timeline and next steps...',
-        from: 'testuser@example.com',
-        to: ['manager@company.com'],
-        createdAt: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-        read: true,
-      },
-      {
-        id: '5',
-        subject: 'Question about the API documentation',
-        body: 'I have a few questions about the API documentation...',
-        from: 'testuser@example.com',
-        to: ['support@Mailigo.com'],
-        createdAt: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
-        read: true,
-      },
-    ];
-
-    setTimeout(() => {
-      setEmails(type === 'inbox' ? mockEmails : sentEmails);
-      setLoading(false);
-    }, 800);
+    fetchEmails();
   }, [type]);
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg text-red-600 dark:text-red-400">
+        {error}
       </div>
     );
   }

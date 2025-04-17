@@ -1,74 +1,89 @@
 const express = require('express');
 const router = express.Router();
 const Communication = require('../models/Communication');
-const PostmarkService = require('../services/postmarkService');
+const auth = require('../middleware/authMiddleware');
 
-// Initialize Postmark service
-const postmarkService = new PostmarkService(process.env.POSTMARK_API_KEY);
-
-// Authentication middleware
-const isAuthenticated = (req, res, next) => {
-  if (!req.user) {
-    return res.status(401).json({ message: 'Not authenticated' });
-  }
-  next();
-};
-
-// Get communications history
-router.get('/', isAuthenticated, async (req, res) => {
+// Get inbox messages
+router.get('/inbox', auth, async (req, res) => {
   try {
-    const communications = await Communication.find({ userId: req.user.id })
-      .sort({ timestamp: -1 });
-    res.json(communications);
+    const messages = await Communication.find({
+      recipient: req.user.email,
+      type: 'received'
+    }).sort({ timestamp: -1 });
+
+    res.json(messages);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Error fetching inbox:', error);
+    res.status(500).json({ error: 'Failed to fetch inbox messages' });
   }
 });
 
-// Send email
-router.post('/send', isAuthenticated, async (req, res) => {
-  const { to, subject, htmlContent, textContent, emailType } = req.body;
-  
+// Get sent messages
+router.get('/sent', auth, async (req, res) => {
   try {
-    // Send email through Postmark
-    const result = await postmarkService.sendEmail({
-      from: process.env.POSTMARK_FROM_EMAIL,
-      to,
+    const messages = await Communication.find({
+      sender: req.user.email,
+      type: 'sent'
+    }).sort({ timestamp: -1 });
+
+    res.json(messages);
+  } catch (error) {
+    console.error('Error fetching sent messages:', error);
+    res.status(500).json({ error: 'Failed to fetch sent messages' });
+  }
+});
+
+// Send new message
+router.post('/send', auth, async (req, res) => {
+  try {
+    const { to, subject, content } = req.body;
+
+    const newMessage = await Communication.create({
+      userId: req.user.id,
+      type: 'sent',
       subject,
-      htmlContent,
-      textContent,
-      messageStream: emailType === 'marketing' ? 'broadcast' : 'outbound'
+      content,
+      recipient: to,
+      sender: req.user.email,
+      emailType: 'transactional',
+      timestamp: new Date()
     });
-    
-    if (result.success) {
-      // Save communication record
-      const communication = await Communication.create({
-        userId: req.user.id,
-        type: 'sent',
-        subject,
-        content: htmlContent || textContent,
-        recipient: to,
-        sender: process.env.POSTMARK_FROM_EMAIL,
-        emailType,
-        metadata: { messageId: result.messageId }
-      });
-      
-      res.json({ success: true, communication });
-    } else {
-      res.status(400).json({ success: false, error: result.error });
-    }
+
+    // Create a corresponding received message for the recipient
+    await Communication.create({
+      type: 'received',
+      subject,
+      content,
+      recipient: to,
+      sender: req.user.email,
+      emailType: 'transactional',
+      timestamp: new Date()
+    });
+
+    res.status(201).json(newMessage);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Error sending message:', error);
+    res.status(500).json({ error: 'Failed to send message' });
   }
 });
 
-// Get email analytics
-router.get('/analytics/:messageId', isAuthenticated, async (req, res) => {
+// Mark message as read
+router.patch('/:id/read', auth, async (req, res) => {
   try {
-    const analytics = await postmarkService.getEmailAnalytics(req.params.messageId);
-    res.json(analytics);
+    const message = await Communication.findOneAndUpdate(
+      { _id: req.params.id, recipient: req.user.email },
+      { $set: { read: true } },
+      { new: true }
+    );
+
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    res.json(message);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Error marking message as read:', error);
+    res.status(500).json({ error: 'Failed to update message' });
   }
 });
 

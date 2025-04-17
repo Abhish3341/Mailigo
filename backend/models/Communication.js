@@ -5,21 +5,50 @@ const communicationSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
-  type: String, // 'sent' or 'received'
-  subject: String,
-  content: String,
-  recipient: String,
-  sender: String,
+  type: {
+    type: String,
+    enum: ['sent', 'received'],
+    required: true
+  },
+  subject: {
+    type: String,
+    required: true
+  },
+  content: {
+    type: String,
+    required: true
+  },
+  recipient: {
+    type: String,
+    required: true
+  },
+  sender: {
+    type: String,
+    required: true
+  },
+  read: {
+    type: Boolean,
+    default: false
+  },
   emailType: {
     type: String,
     enum: ['onboarding', 'marketing', 'transactional', 'engagement'],
     default: 'transactional'
   },
-  metadata: Object,
-  timestamp: { 
-    type: Date, 
-    default: Date.now 
+  metadata: {
+    type: Map,
+    of: String,
+    default: {}
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now
   }
 });
+
+// Index for faster queries
+communicationSchema.index({ recipient: 1, type: 1 });
+communicationSchema.index({ sender: 1, type: 1 });
+communicationSchema.index({ timestamp: -1 });
 
 module.exports = mongoose.model('Communication', communicationSchema);

@@ -1,31 +1,35 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../../utils/axiosconfig';
 
 const ComposeEmail: React.FC = () => {
   const navigate = useNavigate();
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
-  const [body, setBody] = useState('');
+  const [content, setContent] = useState('');
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!to || !subject || !body) {
-      alert('Please fill in all fields');
+    if (!to || !subject || !content) {
+      setError('Please fill in all fields');
       return;
     }
     
     try {
       setSending(true);
-      // Mock API call - would be replaced with actual PostmarkApp API integration
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await axiosInstance.post('/api/communications/send', {
+        to,
+        subject,
+        content
+      });
       
-      console.log('Email sent:', { to, subject, body });
       navigate('/sent');
     } catch (error) {
       console.error('Failed to send email:', error);
-      alert('Failed to send email. Please try again.');
+      setError('Failed to send email. Please try again.');
     } finally {
       setSending(false);
     }
@@ -35,6 +39,12 @@ const ComposeEmail: React.FC = () => {
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
       <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-6">Compose Email</h2>
       
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
+          {error}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label htmlFor="to" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -67,13 +77,13 @@ const ComposeEmail: React.FC = () => {
         </div>
         
         <div className="mb-6">
-          <label htmlFor="body" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Message
           </label>
           <textarea
-            id="body"
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
+            id="content"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
             rows={8}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             placeholder="Write your message here..."
