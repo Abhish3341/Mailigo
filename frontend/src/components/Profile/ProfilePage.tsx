@@ -1,42 +1,83 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import axios from 'axios';
+import axiosInstance from '../../utils/axiosconfig';
+import Skeleton from '../UI/Skeleton';
 
 const ProfilePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser, loading } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [firstname, setFirstname] = useState(user?.firstname || '');
   const [lastname, setLastname] = useState(user?.lastname || '');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [remainingUpdates, setRemainingUpdates] = useState(5 - (user?.profileUpdates?.count || 0));
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await axiosInstance.get('/api/auth/profile');
+        if (response.data.user) {
+          updateUser(response.data.user);
+          setRemainingUpdates(5 - (response.data.user.profileUpdates?.count || 0));
+        }
+      } catch (err) {
+        console.error('Failed to fetch profile:', err);
+      }
+    };
+
+    fetchProfile();
+  }, [updateUser]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
+    if (remainingUpdates <= 0) {
+      setError('You have reached the maximum number of profile updates');
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/auth/profile`,
-        { firstname, lastname },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axiosInstance.put('/api/auth/profile', {
+        firstname,
+        lastname,
+        email: user?.email
+      });
 
-      if (response.data.token) {
-        localStorage.setItem('auth_token', response.data.token);
+      if (response.data.user) {
+        updateUser(response.data.user);
+        setRemainingUpdates(response.data.remainingUpdates);
+        setSuccess('Profile updated successfully');
+        setIsEditing(false);
       }
-
-      setSuccess('Profile updated successfully');
-      setIsEditing(false);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to update profile');
     }
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="mb-8">
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <Skeleton className="h-4 w-20 mb-1" />
+            <Skeleton className="h-6 w-48" />
+          </div>
+          <div>
+            <Skeleton className="h-4 w-20 mb-1" />
+            <Skeleton className="h-6 w-64" />
+          </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow p-6">
@@ -44,8 +85,14 @@ const ProfilePage: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           Profile Information
         </h1>
-        <p className="text-gray-600 dark:text-gray-300">Update your details below</p>
-
+        <p className="text-gray-600 dark:text-gray-300">
+          Update your details below 
+          {remainingUpdates > 0 && (
+            <span className="ml-2 text-blue-600 dark:text-blue-400">
+              ({remainingUpdates} updates remaining)
+            </span>
+          )}
+        </p>
       </div>
 
       {error && (
@@ -90,7 +137,8 @@ const ProfilePage: React.FC = () => {
             <div className="flex space-x-4">
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={remainingUpdates <= 0}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Save Changes
               </button>
@@ -125,9 +173,10 @@ const ProfilePage: React.FC = () => {
             </div>
             <button
               onClick={() => setIsEditing(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={remainingUpdates <= 0}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Edit Profile
+              {remainingUpdates > 0 ? 'Edit Profile' : 'No more edits available'}
             </button>
           </div>
         )}

@@ -56,7 +56,11 @@ const CommunicationHistory: React.FC<CommunicationHistoryProps> = ({ type }) => 
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
         {emails.length > 0 ? (
           emails.map((email) => (
-            <EmailItem key={email.id} email={email} isSent={type === 'sent'} />
+            <EmailItem 
+              key={email._id} 
+              email={email} 
+              isSent={type === 'sent'} 
+            />
           ))
         ) : (
           <div className="p-4 text-center text-gray-500 dark:text-gray-400">

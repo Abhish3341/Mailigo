@@ -5,14 +5,21 @@ export interface User {
   lastname: string;
   picture?: string;
   isFirstLogin: boolean;
+  profileUpdates: {
+    count: number;
+    lastUpdate?: string;
+  };
 }
 
 export interface Email {
-  id: string;
+  _id: string;
   subject: string;
-  body: string;
-  from: string;
-  to: string[];
-  createdAt: string;
+  content: string;
+  sender: string;
+  recipient: string;
+  timestamp: string;
   read: boolean;
+  type: 'sent' | 'received';
+  emailType: 'onboarding' | 'marketing' | 'transactional' | 'engagement';
+  metadata?: Record<string, string>;
 }
