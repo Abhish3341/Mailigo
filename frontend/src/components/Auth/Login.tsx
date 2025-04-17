@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 const Login: React.FC = () => {
   const { login } = useAuth();
   const [error, setError] = React.useState<string>('');
-  const navigate = useNavigate(); // 🔁 navigation hook
+  const navigate = useNavigate();
 
   const googleLogin = useGoogleLogin({
     onSuccess: async (response) => {
@@ -26,14 +26,13 @@ const Login: React.FC = () => {
           userInfo.data
         );
 
-        // Save token to localStorage
-        localStorage.setItem('auth_token', backendResponse.data.token);
-
-        // Update auth context
-        await login(backendResponse.data.user);
-
-        // ✅ Redirect after successful login
-        navigate('/dashboard'); // Change path as needed
+        if (backendResponse.data.token) {
+          // Save token to localStorage and update auth context
+          await login(backendResponse.data.token, backendResponse.data.user);
+          navigate('/dashboard');
+        } else {
+          throw new Error('No token received from server');
+        }
       } catch (error) {
         console.error('Login error:', error);
         setError('Failed to login. Please try again.');
@@ -50,7 +49,7 @@ const Login: React.FC = () => {
         <div className="flex flex-col items-center mb-8">
           <img 
             src="/namestation-logo.svg" 
-            alt="Namestation" 
+            alt="Mailigo" 
             className="h-16 w-16 mb-4"
           />
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">

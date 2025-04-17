@@ -7,8 +7,18 @@ interface DecodedToken {
 }
 
 export const decodeToken = (token: string): DecodedToken | null => {
+  if (!token || typeof token !== 'string') {
+    console.error('Invalid token provided to decodeToken');
+    return null;
+  }
+
   try {
-    const base64Url = token.split('.')[1];
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      throw new Error('Invalid token format');
+    }
+
+    const base64Url = parts[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const jsonPayload = decodeURIComponent(
       atob(base64)

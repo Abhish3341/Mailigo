@@ -5,7 +5,7 @@ import { decodeToken } from '../utils/tokenUtils';
 interface AuthContextProps {
   user: User | null;
   loading: boolean;
-  login: (token: string) => void;
+  login: (token: string, userData: User) => void;
   logout: () => void;
   updateUser: (user: User) => void;
 }
@@ -18,41 +18,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
-    if (token) {
-      const decodedToken = decodeToken(token);
-      if (decodedToken) {
-        setUser({
-          id: decodedToken.id,
-          email: decodedToken.email,
-          firstname: decodedToken.firstname,
-          lastname: decodedToken.lastname,
-          isFirstLogin: decodedToken.isFirstLogin
-        });
+    const storedUser = localStorage.getItem('user');
+    
+    if (token && storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user');
       }
     }
     setLoading(false);
   }, []);
 
-  const login = (token: string) => {
+  const login = (token: string, userData: User) => {
     localStorage.setItem('auth_token', token);
-    const decodedToken = decodeToken(token);
-    if (decodedToken) {
-      setUser({
-        id: decodedToken.id,
-        email: decodedToken.email,
-        firstname: decodedToken.firstname,
-        lastname: decodedToken.lastname,
-        isFirstLogin: decodedToken.isFirstLogin
-      });
-    }
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
   };
 
   const updateUser = (updatedUser: User) => {
+    localStorage.setItem('user', JSON.stringify(updatedUser));
     setUser(updatedUser);
   };
 
   const logout = () => {
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
     setUser(null);
   };
 
