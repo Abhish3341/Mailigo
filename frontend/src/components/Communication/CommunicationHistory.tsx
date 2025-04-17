@@ -15,9 +15,9 @@ const CommunicationHistory: React.FC<CommunicationHistoryProps> = ({ type }) => 
     const mockEmails: Email[] = [
       {
         id: '1',
-        subject: 'Welcome to TensorGo Platform',
+        subject: 'Welcome to Mailigo Platform',
         body: 'Thank you for signing up to our platform. We are excited to have you on board!',
-        from: 'support@tensorgo.com',
+        from: 'support@mailigo.com',
         to: ['testuser@example.com'],
         createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
         read: true,
@@ -26,7 +26,7 @@ const CommunicationHistory: React.FC<CommunicationHistoryProps> = ({ type }) => 
         id: '2',
         subject: 'Your account verification',
         body: 'Please verify your email address to activate all features of your account.',
-        from: 'noreply@tensorgo.com',
+        from: 'noreply@mailigo.com',
         to: ['testuser@example.com'],
         createdAt: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
         read: false,
@@ -35,7 +35,7 @@ const CommunicationHistory: React.FC<CommunicationHistoryProps> = ({ type }) => 
         id: '3',
         subject: 'New feature announcement',
         body: 'We are excited to announce our new AI-powered features for the platform.',
-        from: 'marketing@tensorgo.com',
+        from: 'marketing@mailigo.com',
         to: ['testuser@example.com'],
         createdAt: new Date(Date.now() - 180000).toISOString(), // 3 minutes ago
         read: false,
@@ -57,7 +57,7 @@ const CommunicationHistory: React.FC<CommunicationHistoryProps> = ({ type }) => 
         subject: 'Question about the API documentation',
         body: 'I have a few questions about the API documentation...',
         from: 'testuser@example.com',
-        to: ['support@tensorgo.com'],
+        to: ['support@Mailigo.com'],
         createdAt: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
         read: true,
       },
