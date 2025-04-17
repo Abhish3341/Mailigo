@@ -91,12 +91,13 @@ const Sidebar: React.FC = () => {
               <ThemeToggle />
               <button
                 onClick={logout}
-                className="flex items-center px-4 py-2 rounded-md transition-all text-sm bg-transparent text-gray-700 dark:text-gray-300 hover:bg-[#EF4444] hover:text-white dark:hover:text-white"
+                className="flex items-center px-4 py-2 rounded-md transition-all text-[15px] font-medium text-gray-900 dark:text-gray-100 hover:bg-[#EF4444] hover:text-white"
               >
-                <LogOut size={18} className="mr-2" />
+                <LogOut size={20} className="mr-2" />
                 {isExpanded ? 'Logout' : ''}
               </button>
             </div>
+
 
 
 
