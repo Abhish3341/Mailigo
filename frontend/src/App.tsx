@@ -1,14 +1,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from './context/ThemeContext';
-import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { AuthProvider } from './contexts/AuthContext';
 import Layout from './components/Layout/Layout';
 import Login from './components/Auth/Login';
 import Dashboard from './components/Dashboard/Dashboard';
 import CommunicationHistory from './components/Communication/CommunicationHistory';
 import ComposeEmail from './components/Communication/ComposeEmail';
 import ProfilePage from './components/Profile/ProfilePage';
-import { useAuth } from './context/AuthContext';
+import { useAuth } from './contexts/AuthContext';
 
 const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
   const { user, loading } = useAuth();

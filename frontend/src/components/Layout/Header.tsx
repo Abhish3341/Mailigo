@@ -15,11 +15,11 @@ const Header: React.FC = () => {
             <Link to="/dashboard" className="flex items-center">
               <img 
                 src="/namestation-logo.svg" 
-                alt="Namestation" 
+                alt="" 
                 className="h-8 w-8"
               />
               <span className="ml-2 text-xl font-semibold text-gray-900 dark:text-white">
-                Namestation
+                Mailigo
               </span>
             </Link>
           </div>

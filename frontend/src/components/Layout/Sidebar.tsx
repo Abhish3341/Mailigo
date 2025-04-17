@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Inbox, Send, PenTool, Menu, X, User, Home } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import ThemeToggle from '../UI/ThemeToggle';
 
 const Sidebar: React.FC = () => {
