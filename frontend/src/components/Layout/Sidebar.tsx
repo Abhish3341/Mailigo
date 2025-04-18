@@ -7,8 +7,9 @@ import ThemeToggle from '../UI/ThemeToggle';
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -35,9 +36,15 @@ const Sidebar: React.FC = () => {
     },
   ];
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Add delay for visual feedback
+      logout();
+      navigate('/login');
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -105,10 +112,20 @@ const Sidebar: React.FC = () => {
               <ThemeToggle />
               <button
                 onClick={handleLogout}
-                className="flex items-center px-4 py-2 rounded-md transition-all text-[15px] font-medium text-gray-900 dark:text-gray-100 hover:bg-[#EF4444] hover:text-white"
+                disabled={isLoggingOut}
+                className="flex items-center px-4 py-2 rounded-md transition-all text-[15px] font-medium text-gray-900 dark:text-gray-100 hover:bg-[#EF4444] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <LogOut size={20} className="mr-2" />
-                {isExpanded ? 'Logout' : ''}
+                {isLoggingOut ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                    {isExpanded && 'Logging out...'}
+                  </div>
+                ) : (
+                  <>
+                    <LogOut size={20} className="mr-2" />
+                    {isExpanded && 'Logout'}
+                  </>
+                )}
               </button>
             </div>
           </div>
