@@ -8,6 +8,7 @@ import Dashboard from './components/Dashboard/Dashboard';
 import CommunicationHistory from './components/Communication/CommunicationHistory';
 import ComposeEmail from './components/Communication/ComposeEmail';
 import ProfilePage from './components/Profile/ProfilePage';
+import SearchResults from './components/Communication/SearchResults';
 import { useAuth } from './contexts/AuthContext';
 
 const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
@@ -51,6 +52,10 @@ const App: React.FC = () => {
               <Route
                 path="/profile"
                 element={<ProtectedRoute element={<ProfilePage />} />}
+              />
+              <Route
+                path="/search"
+                element={<ProtectedRoute element={<SearchResults />} />}
               />
               <Route path="/" element={<Navigate to="/login" />} />
             </Routes>

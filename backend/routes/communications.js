@@ -5,6 +5,49 @@ const auth = require('../middleware/authMiddleware');
 const PostmarkService = require('../services/postmarkService');
 const emailService = new PostmarkService();
 
+// Add this new route for search
+router.get('/search', auth, async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.json([]);
+    }
+
+    const searchRegex = new RegExp(q, 'i');
+    const userEmail = req.user.email;
+
+    const results = await Communication.find({
+      $or: [
+        // Search in received messages
+        {
+          recipient: userEmail,
+          $or: [
+            { subject: searchRegex },
+            { content: searchRegex },
+            { sender: searchRegex }
+          ]
+        },
+        // Search in sent messages
+        {
+          sender: userEmail,
+          $or: [
+            { subject: searchRegex },
+            { content: searchRegex },
+            { recipient: searchRegex }
+          ]
+        }
+      ]
+    })
+    .sort({ timestamp: -1 })
+    .limit(20);
+
+    res.json(results);
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'Failed to perform search' });
+  }
+});
+
 // Get inbox messages
 router.get('/inbox', auth, async (req, res) => {
   try {
