@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Email } from '../../types';
 import EmailItem from './EmailItem';
-import axiosInstance from '../../utils/axiosconfig';
+import axiosInstance from '../../utils/axiosConfig';
 
 interface CommunicationHistoryProps {
   type: 'inbox' | 'sent';

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import axiosInstance from '../../utils/axiosconfig';
+import axiosInstance from '../../utils/axiosConfig';
 
 const ComposeEmail: React.FC = () => {
   const navigate = useNavigate();
