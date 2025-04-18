@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import axiosInstance from '../../utils/axiosconfig';
 
 const ComposeEmail: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
@@ -12,9 +14,16 @@ const ComposeEmail: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
     if (!to || !subject || !content) {
       setError('Please fill in all fields');
+      return;
+    }
+
+    // Prevent sending to self
+    if (to.toLowerCase() === user?.email.toLowerCase()) {
+      setError('You cannot send emails to yourself');
       return;
     }
     
@@ -27,9 +36,9 @@ const ComposeEmail: React.FC = () => {
       });
       
       navigate('/sent');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to send email:', error);
-      setError('Failed to send email. Please try again.');
+      setError(error.response?.data?.error || 'Failed to send email. Please try again.');
     } finally {
       setSending(false);
     }

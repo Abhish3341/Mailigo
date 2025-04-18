@@ -23,7 +23,8 @@ router.get('/sent', auth, async (req, res) => {
   try {
     const messages = await Communication.find({
       sender: req.user.email,
-      type: 'sent'
+      type: 'sent',
+      recipient: { $ne: req.user.email } // Exclude self-sent messages
     }).sort({ timestamp: -1 });
 
     res.json(messages);
@@ -37,6 +38,11 @@ router.get('/sent', auth, async (req, res) => {
 router.post('/send', auth, async (req, res) => {
   try {
     const { to, subject, content } = req.body;
+
+    // Prevent sending to self
+    if (to.toLowerCase() === req.user.email.toLowerCase()) {
+      return res.status(400).json({ error: 'You cannot send emails to yourself' });
+    }
 
     const newMessage = await Communication.create({
       userId: req.user.id,
