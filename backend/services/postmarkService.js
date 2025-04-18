@@ -1,17 +1,26 @@
+// ✅ Force-load .env manually (since you can't modify index.js)
+require('dotenv').config({ path: require('path').resolve(__dirname, '..', '.env') });
+
 const postmark = require('postmark');
 const OnboardedUser = require('../models/OnboardedUser');
+const Communication = require('../models/Communication'); // Make sure this file exists
 
 class PostmarkService {
   constructor() {
-    this.client = new postmark.ServerClient('ffba1aab-3b38-49c1-9364-3dbb7a69923a');
-    this.defaultSender = 'abhinav.sharma@learner.manipal.edu';
+    const token = process.env.POSTMARK_SERVER_TOKEN;
+
+    if (!token) {
+      throw new Error("POSTMARK_SERVER_TOKEN is not defined in environment variables.");
+    }
+
+    this.client = new postmark.ServerClient(token);
+    this.defaultSender = process.env.EMAIL_FROM || 'abhinav.sharma@learner.manipal.edu';
     this.supportEmail = 'support@mailigo.xyz';
     this.dashboardUrl = 'https://mailigo.xyz/dashboard';
   }
 
   async sendOnboardingEmail(user) {
     try {
-      // Check if user has already been onboarded
       const existingOnboarding = await OnboardedUser.findOne({ email: user.email });
       if (existingOnboarding) {
         console.log(`User ${user.email} has already been onboarded`);
@@ -30,12 +39,8 @@ class PostmarkService {
         MessageStream: 'onboarding'
       });
 
-      // Record the onboarding email
-      await OnboardedUser.create({
-        email: user.email
-      });
+      await OnboardedUser.create({ email: user.email });
 
-      // Create a communication record for the onboarding email
       await Communication.create({
         type: 'received',
         subject: 'Welcome to Mailigo!',
