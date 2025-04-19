@@ -1,3 +1,7 @@
+* Format date relative to current time
+ * @param date Date to format
+ * @returns Formatted string (e.g., "2 hours ago", "Just now")
+ */
 export const formatRelativeTime = (date: Date | string): string => {
   const now = new Date();
   const targetDate = new Date(date);
@@ -22,6 +26,7 @@ export const formatRelativeTime = (date: Date | string): string => {
     return `${days} ${days === 1 ? 'day' : 'days'} ago`;
   }
   
+  // Format as date for older dates
   return targetDate.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -29,15 +34,31 @@ export const formatRelativeTime = (date: Date | string): string => {
   });
 };
 
+/**
+ * Format a number with commas as thousands separators
+ * @param number Number to format
+ * @returns Formatted string with thousands separators
+ */
 export const formatNumber = (number: number): string => {
   return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 };
 
+/**
+ * Truncate text to a specific length and add ellipsis
+ * @param text Text to truncate
+ * @param maxLength Maximum length before truncation
+ * @returns Truncated text
+ */
 export const truncateText = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength).trim() + '...';
 };
 
+/**
+ * Generate initials from a name
+ * @param name Full name
+ * @returns Initials (up to 2 characters)
+ */
 export const getInitials = (name: string): string => {
   if (!name) return '';
   
@@ -49,15 +70,26 @@ export const getInitials = (name: string): string => {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 };
 
+/**
+ * Validate email format
+ * @param email Email address to validate
+ * @returns Boolean indicating if email is valid
+ */
 export const isValidEmail = (email: string): boolean => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(email);
 };
 
-export const debounce = <T extends (...args: any[]) => any>(
+/**
+ * Debounce function to limit how often a function is called
+ * @param func Function to debounce
+ * @param wait Wait time in milliseconds
+ * @returns Debounced function
+ */
+export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
-): (...args: Parameters<T>) => void => {
+): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null;
   
   return function(...args: Parameters<T>) {
@@ -69,11 +101,19 @@ export const debounce = <T extends (...args: any[]) => any>(
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(later, wait);
   };
-};
+}
 
+/**
+ * Simple in-memory cache with expiration
+ */
 export class SimpleCache {
   private cache: Record<string, { value: any; expiry: number }> = {};
   
+  /**
+   * Get a value from cache
+   * @param key Cache key
+   * @returns Cached value or null if expired/not found
+   */
   get(key: string): any {
     const item = this.cache[key];
     
@@ -87,6 +127,12 @@ export class SimpleCache {
     return item.value;
   }
   
+  /**
+   * Set a value in cache
+   * @param key Cache key
+   * @param value Value to cache
+   * @param ttl Time to live in milliseconds (default: 5 minutes)
+   */
   set(key: string, value: any, ttl: number = 5 * 60 * 1000): void {
     this.cache[key] = {
       value,
@@ -94,15 +140,27 @@ export class SimpleCache {
     };
   }
   
+  /**
+   * Remove an item from cache
+   * @param key Cache key
+   */
   remove(key: string): void {
     delete this.cache[key];
   }
   
+  /**
+   * Clear the entire cache
+   */
   clear(): void {
     this.cache = {};
   }
 }
 
+/**
+ * Generate a random string ID
+ * @param length Length of the ID (default: 8)
+ * @returns Random string ID
+ */
 export const generateId = (length: number = 8): string => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
@@ -114,6 +172,11 @@ export const generateId = (length: number = 8): string => {
   return result;
 };
 
+/**
+ * Convert a string to kebab-case
+ * @param str Input string
+ * @returns Kebab-cased string
+ */
 export const toKebabCase = (str: string): string => {
   return str
     .replace(/([a-z])([A-Z])/g, '$1-$2')
@@ -121,11 +184,22 @@ export const toKebabCase = (str: string): string => {
     .toLowerCase();
 };
 
+/**
+ * Deep clone an object
+ * @param obj Object to clone
+ * @returns Cloned object
+ */
 export const deepClone = <T>(obj: T): T => {
   return JSON.parse(JSON.stringify(obj));
 };
 
-export const getFromStorage = <T>(key: string, defaultValue: T): T => {
+/**
+ * Get a value from localStorage with type safety
+ * @param key Storage key
+ * @param defaultValue Default value if key doesn't exist
+ * @returns Stored value or default value
+ */
+export function getFromStorage<T>(key: string, defaultValue: T): T {
   try {
     const item = localStorage.getItem(key);
     return item ? JSON.parse(item) : defaultValue;
@@ -133,12 +207,17 @@ export const getFromStorage = <T>(key: string, defaultValue: T): T => {
     console.error(`Error reading ${key} from localStorage:`, error);
     return defaultValue;
   }
-};
+}
 
-export const saveToStorage = <T>(key: string, value: T): void => {
+/**
+ * Save a value to localStorage
+ * @param key Storage key
+ * @param value Value to store
+ */
+export function saveToStorage<T>(key: string, value: T): void {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch (error) {
     console.error(`Error saving ${key} to localStorage:`, error);
   }
-};
+}

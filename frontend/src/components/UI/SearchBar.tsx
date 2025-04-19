@@ -1,6 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Search, X } from 'lucide-react';
-import { debounce } from '../../utils/helpers';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -9,23 +8,14 @@ interface SearchBarProps {
 
 const SearchBar: React.FC<SearchBarProps> = ({ 
   onSearch, 
-  placeholder = 'Search emails...' 
+  placeholder = 'Search...' 
 }) => {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
 
-  // Debounce search to avoid too many API calls
-  const debouncedSearch = useCallback(
-    debounce((searchQuery: string) => {
-      onSearch(searchQuery);
-    }, 300),
-    [onSearch]
-  );
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newQuery = e.target.value;
-    setQuery(newQuery);
-    debouncedSearch(newQuery);
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch(query);
   };
 
   const clearSearch = () => {
@@ -35,9 +25,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   return (
     <form 
-      onSubmit={(e) => e.preventDefault()}
+      onSubmit={handleSearch}
       className={`relative max-w-2xl w-full transition-all duration-200 ${
-        isFocused ? 'scale-[1.02]' : 'scale-100'
+        isFocused ? 'scale-105' : 'scale-100'
       }`}
     >
       <div className="relative">
@@ -50,7 +40,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         <input
           type="text"
           value={query}
-          onChange={handleSearch}
+          onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className="block w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-full 

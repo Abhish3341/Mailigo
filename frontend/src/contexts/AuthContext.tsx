@@ -1,13 +1,14 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { User } from '../types';
-import { decodeToken } from '../utils/tokenUtils';
+import { setAuthToken, clearAuth } from '../utils/authUtils';
+import axios from 'axios';
 
 interface AuthContextProps {
   user: User | null;
   loading: boolean;
-  login: (token: string, userData: User) => Promise<void>;
+  login: (token: string, userData: User) => void;
   logout: () => void;
-  updateUser: (user: User) => void;
+  updateUser: (userData: User) => void;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -18,19 +19,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const initAuth = async () => {
-      setLoading(true);
       try {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('token');
         const storedUser = localStorage.getItem('user');
         
         if (token && storedUser) {
-          const userData = JSON.parse(storedUser);
-          setUser(userData);
+          setAuthToken(token);
+          setUser(JSON.parse(storedUser));
         }
       } catch (error) {
-        console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user');
+        console.error('Auth initialization failed:', error);
+        clearAuth();
       } finally {
         setLoading(false);
       }
@@ -39,32 +38,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, []);
 
-  const login = async (token: string, userData: User) => {
-    setLoading(true);
-    try {
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateUser = (updatedUser: User) => {
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    setUser(updatedUser);
+  const login = (token: string, userData: User) => {
+    setAuthToken(token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
   };
 
   const logout = () => {
-    setLoading(true);
-    try {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user');
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
+    clearAuth();
+    setUser(null);
+  };
+
+  const updateUser = (userData: User) => {
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
   };
 
   return (
