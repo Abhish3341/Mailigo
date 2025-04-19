@@ -2,8 +2,8 @@ import axios from 'axios';
 
 export const refreshToken = async () => {
     try {
-        const token = localStorage.getItem('token');
-        if (!token) {
+        const currentToken = localStorage.getItem('auth_token');
+        if (!currentToken) {
             throw new Error('No token found');
         }
 
@@ -12,44 +12,18 @@ export const refreshToken = async () => {
             {},
             {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${currentToken}`
                 }
             }
         );
 
         if (response.data.token) {
-            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('auth_token', response.data.token);
             return response.data.token;
         }
-        return null;
     } catch (error) {
         console.error('Token refresh failed:', error);
-        localStorage.removeItem('token');
-        return null;
+        localStorage.removeItem('auth_token');
+        window.location.href = '/login';
     }
-};
-
-export const setAuthToken = (token: string) => {
-    if (token) {
-        localStorage.setItem('token', token);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    } else {
-        localStorage.removeItem('token');
-        delete axios.defaults.headers.common['Authorization'];
-    }
-};
-
-export const getAuthToken = () => {
-    return localStorage.getItem('token');
-};
-
-export const isAuthenticated = () => {
-    const token = getAuthToken();
-    return !!token;
-};
-
-export const clearAuth = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    delete axios.defaults.headers.common['Authorization'];
 };

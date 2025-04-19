@@ -1,14 +1,13 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { User } from '../types';
-import { setAuthToken, clearAuth } from '../utils/authUtils';
-import axios from 'axios';
+import { decodeToken } from '../utils/tokenUtils';
 
 interface AuthContextProps {
   user: User | null;
   loading: boolean;
-  login: (token: string, userData: User) => void;
+  login: (token: string, userData: User) => Promise<void>;
   logout: () => void;
-  updateUser: (userData: User) => void;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -19,17 +18,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const initAuth = async () => {
+      setLoading(true);
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('auth_token');
         const storedUser = localStorage.getItem('user');
         
         if (token && storedUser) {
-          setAuthToken(token);
-          setUser(JSON.parse(storedUser));
+          const userData = JSON.parse(storedUser);
+          setUser(userData);
         }
       } catch (error) {
-        console.error('Auth initialization failed:', error);
-        clearAuth();
+        console.error('Error parsing stored user data:', error);
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user');
       } finally {
         setLoading(false);
       }
@@ -38,20 +39,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, []);
 
-  const login = (token: string, userData: User) => {
-    setAuthToken(token);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
+  const login = async (token: string, userData: User) => {
+    setLoading(true);
+    try {
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateUser = (updatedUser: User) => {
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
   };
 
   const logout = () => {
-    clearAuth();
-    setUser(null);
-  };
-
-  const updateUser = (userData: User) => {
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
+    setLoading(true);
+    try {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user');
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

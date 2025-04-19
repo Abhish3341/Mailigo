@@ -4,8 +4,9 @@ import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+
 const Login: React.FC = () => {
-  const { login } = useAuth();
+  const { login, loading } = useAuth();
   const [error, setError] = React.useState<string>('');
   const [isLoading, setIsLoading] = React.useState(false);
   const navigate = useNavigate();
@@ -29,14 +30,14 @@ const Login: React.FC = () => {
         );
 
         if (backendResponse.data.token) {
-          // Login and update auth context
+          // Save token to localStorage and update auth context
           await login(backendResponse.data.token, backendResponse.data.user);
           navigate('/dashboard');
         } else {
           throw new Error('No token received from server');
         }
       } catch (error) {
-        console.error('Login failed:', error);
+        console.error('Login error:', error);
         setError('Failed to login. Please try again.');
       } finally {
         setIsLoading(false);

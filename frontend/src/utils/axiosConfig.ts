@@ -1,8 +1,7 @@
 import axios from 'axios';
-import { refreshToken } from './authUtils';
 
 const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
+    baseURL: 'http://localhost:8000',
     headers: {
         'Content-Type': 'application/json'
     },
@@ -12,7 +11,7 @@ const axiosInstance = axios.create({
 // Add request interceptor
 axiosInstance.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('auth_token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -26,27 +25,23 @@ axiosInstance.interceptors.request.use(
 // Add response interceptor with better error handling
 axiosInstance.interceptors.response.use(
     (response) => response,
-    async (error) => {
-        const originalRequest = error.config;
-
-        // If the error is 401 and we haven't tried to refresh the token yet
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
-
-            try {
-                const newToken = await refreshToken();
-                if (newToken) {
-                    axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-                    originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
-                    return axiosInstance(originalRequest);
-                }
-            } catch (refreshError) {
-                // If refresh token fails, redirect to login
-                window.location.href = '/login';
-                return Promise.reject(refreshError);
+    (error) => {
+        if (error.response?.status === 500) {
+            console.error('Server error:', error.response.data);
+            // Return default stats data if stats endpoint fails
+            if (error.config.url === '/api/problems/stats') {
+                return Promise.resolve({
+                    data: {
+                        problemsSolved: 0,
+                        totalProblems: 0,
+                        successRate: 0,
+                        averageTime: 0,
+                        ranking: 0
+                    }
+                });
             }
+            return Promise.reject(new Error('An internal server error occurred. Please try again later.'));
         }
-
         return Promise.reject(error);
     }
 );

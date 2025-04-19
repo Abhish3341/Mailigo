@@ -2,8 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Communication = require('../models/Communication');
 const auth = require('../middleware/authMiddleware');
-const PostmarkService = require('../services/postmarkService');
-const emailService = new PostmarkService();
 
 // Get inbox messages
 router.get('/inbox', auth, async (req, res) => {
@@ -92,52 +90,6 @@ router.patch('/:id/read', auth, async (req, res) => {
   } catch (error) {
     console.error('Error marking message as read:', error);
     res.status(500).json({ error: 'Failed to update message' });
-  }
-});
-
-// Send engagement email (feedback request)
-router.post('/request-feedback', auth, async (req, res) => {
-  try {
-    const result = await emailService.sendEngagementEmail(req.user, 'feedback');
-    res.json(result);
-  } catch (error) {
-    console.error('Failed to send feedback request:', error);
-    res.status(500).json({ error: 'Failed to send feedback request' });
-  }
-});
-
-// Send marketing campaign
-router.post('/marketing-campaign', auth, async (req, res) => {
-  try {
-    const { subject, content, recipients } = req.body;
-    
-    const results = await Promise.all(
-      recipients.map(recipient => 
-        emailService.sendMarketingEmail(recipient, { subject, content })
-      )
-    );
-    
-    res.json({ results });
-  } catch (error) {
-    console.error('Failed to send marketing campaign:', error);
-    res.status(500).json({ error: 'Failed to send marketing campaign' });
-  }
-});
-
-// Send urgent notification
-router.post('/notify', auth, async (req, res) => {
-  try {
-    const { subject, content, recipient } = req.body;
-    
-    const result = await emailService.sendNoReplyEmail(
-      { email: recipient },
-      { subject, content }
-    );
-    
-    res.json(result);
-  } catch (error) {
-    console.error('Failed to send notification:', error);
-    res.status(500).json({ error: 'Failed to send notification' });
   }
 });
 

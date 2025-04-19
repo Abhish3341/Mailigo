@@ -1,35 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import axiosInstance from '../../utils/axiosConfig';
+import axiosInstance from '../../utils/axiosconfig';
 import Skeleton from '../UI/Skeleton';
 
 const ProfilePage: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, loading } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [firstname, setFirstname] = useState(user?.firstname || '');
   const [lastname, setLastname] = useState(user?.lastname || '');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [remainingUpdates, setRemainingUpdates] = useState(
-    user?.profileUpdates?.remaining ?? 5
-  );
-  const [loading, setLoading] = useState(true);
+  const [remainingUpdates, setRemainingUpdates] = useState(5 - (user?.profileUpdates?.count || 0));
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axiosInstance.get('/auth/profile');
+        const response = await axiosInstance.get('/api/auth/profile');
         if (response.data.user) {
           updateUser(response.data.user);
-          setRemainingUpdates(response.data.user.profileUpdates.remaining);
-          setFirstname(response.data.user.firstname);
-          setLastname(response.data.user.lastname);
+          setRemainingUpdates(5 - (response.data.user.profileUpdates?.count || 0));
         }
       } catch (err) {
         console.error('Failed to fetch profile:', err);
-        setError('Failed to load profile data');
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -41,20 +33,21 @@ const ProfilePage: React.FC = () => {
     setError('');
     setSuccess('');
 
-    if (!user?.isFirstLogin && remainingUpdates <= 0) {
+    if (remainingUpdates <= 0) {
       setError('You have reached the maximum number of profile updates');
       return;
     }
 
     try {
-      const response = await axiosInstance.put('/auth/profile', {
+      const response = await axiosInstance.put('/api/auth/profile', {
         firstname,
-        lastname
+        lastname,
+        email: user?.email
       });
 
       if (response.data.user) {
         updateUser(response.data.user);
-        setRemainingUpdates(response.data.user.profileUpdates.remaining);
+        setRemainingUpdates(response.data.remainingUpdates);
         setSuccess('Profile updated successfully');
         setIsEditing(false);
       }
@@ -70,6 +63,7 @@ const ProfilePage: React.FC = () => {
           <Skeleton className="h-8 w-48 mb-2" />
           <Skeleton className="h-4 w-64" />
         </div>
+
         <div className="space-y-6">
           <div>
             <Skeleton className="h-4 w-20 mb-1" />
@@ -93,7 +87,7 @@ const ProfilePage: React.FC = () => {
         </h1>
         <p className="text-gray-600 dark:text-gray-300">
           Update your details below 
-          {!user?.isFirstLogin && remainingUpdates > 0 && (
+          {remainingUpdates > 0 && (
             <span className="ml-2 text-blue-600 dark:text-blue-400">
               ({remainingUpdates} updates remaining)
             </span>
@@ -143,7 +137,7 @@ const ProfilePage: React.FC = () => {
             <div className="flex space-x-4">
               <button
                 type="submit"
-                disabled={!user?.isFirstLogin && remainingUpdates <= 0}
+                disabled={remainingUpdates <= 0}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Save Changes
@@ -179,10 +173,10 @@ const ProfilePage: React.FC = () => {
             </div>
             <button
               onClick={() => setIsEditing(true)}
-              disabled={!user?.isFirstLogin && remainingUpdates <= 0}
+              disabled={remainingUpdates <= 0}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {!user?.isFirstLogin && remainingUpdates <= 0 ? 'No more edits available' : 'Edit Profile'}
+              {remainingUpdates > 0 ? 'Edit Profile' : 'No more edits available'}
             </button>
           </div>
         )}

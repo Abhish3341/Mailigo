@@ -16,7 +16,7 @@ const CommunicationHistory: React.FC<CommunicationHistoryProps> = ({ type }) => 
     const fetchEmails = async () => {
       try {
         setLoading(true);
-        const response = await axiosInstance.get(`/communications/${type}`);
+        const response = await axiosInstance.get(`/api/communications/${type}`);
         setEmails(response.data);
         setError(null);
       } catch (err) {
