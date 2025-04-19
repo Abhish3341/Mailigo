@@ -15,13 +15,6 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  profileUpdates: {
-    count: {
-      type: Number,
-      default: 0
-    },
-    lastUpdate: Date
-  },
   previousPasswords: [String],
   createdAt: {
     type: Date,

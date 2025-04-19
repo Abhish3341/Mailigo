@@ -5,9 +5,6 @@ const User = require("../models/Users");
 const auth = require('../middleware/authMiddleware');
 const router = express.Router();
 
-// Rate limiting for password changes
-const passwordChangeAttempts = new Map();
-
 const checkPasswordStrength = (password) => {
   const minLength = 8;
   const maxLength = 128;
@@ -93,20 +90,6 @@ router.post('/change-password', auth, async (req, res) => {
         const { currentPassword, newPassword } = req.body;
         const userId = req.user.id;
 
-        // Rate limiting check
-        const now = Date.now();
-        const userAttempts = passwordChangeAttempts.get(userId) || [];
-        const recentAttempts = userAttempts.filter(timestamp => now - timestamp < 3600000); // Last hour
-
-        if (recentAttempts.length >= 3) {
-            return res.status(429).json({
-                error: "Too many password change attempts. Please try again later."
-            });
-        }
-
-        // Update attempts
-        passwordChangeAttempts.set(userId, [...recentAttempts, now]);
-
         // Get user
         const user = await User.findById(userId);
         if (!user) {
@@ -190,9 +173,6 @@ router.post('/register', async (req, res) => {
             email,
             password: hashedPassword,
             isFirstLogin: true,
-            profileUpdates: {
-                count: 0
-            },
             previousPasswords: [hashedPassword]
         });
 
@@ -240,7 +220,7 @@ router.post('/google', async (req, res) => {
             });
         }
 
-        // Check if user already exists with this email
+        // Check if user already exists
         const existingUser = await User.findOne({ email });
 
         if (existingUser) {
@@ -283,10 +263,7 @@ router.post('/google', async (req, res) => {
             picture: picture || '',
             googleId: sub,
             password: await bcrypt.hash(Math.random().toString(36), 10),
-            isFirstLogin: true,
-            profileUpdates: {
-                count: 0
-            }
+            isFirstLogin: true
         });
 
         const token = jwt.sign(
@@ -320,83 +297,6 @@ router.post('/google', async (req, res) => {
     }
 });
 
-// Update user profile
-router.put('/profile', auth, async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id);
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-
-        const { firstname, lastname, email } = req.body;
-
-        // For first update after registration
-        if (user.isFirstLogin) {
-            user.firstname = firstname;
-            user.lastname = lastname;
-            user.email = email;
-            user.isFirstLogin = false;
-            user.profileUpdates.count = 0;
-            await user.save();
-
-            const token = jwt.sign(
-                { id: user._id, email: user.email, firstname: user.firstname, lastname: user.lastname },
-                process.env.SECRET_KEY,
-                { expiresIn: '1h' }
-            );
-
-            return res.json({
-                message: "Profile updated successfully",
-                user: {
-                    firstname: user.firstname,
-                    lastname: user.lastname,
-                    email: user.email,
-                    isFirstLogin: false
-                },
-                token
-            });
-        }
-
-        // Check update limit for subsequent updates
-        if (user.profileUpdates.count >= 3) {
-            return res.status(403).json({
-                error: "You have reached the maximum number of profile updates"
-            });
-        }
-
-        // Update profile
-        user.firstname = firstname;
-        user.lastname = lastname;
-        user.email = email;
-        user.profileUpdates.count += 1;
-        user.profileUpdates.lastUpdate = new Date();
-        await user.save();
-
-        // Generate new token with updated info
-        const token = jwt.sign(
-            { id: user._id, email: user.email, firstname: user.firstname, lastname: user.lastname },
-            process.env.SECRET_KEY,
-            { expiresIn: '1h' }
-        );
-
-        res.json({
-            message: "Profile updated successfully",
-            user: {
-                firstname: user.firstname,
-                lastname: user.lastname,
-                email: user.email,
-                isFirstLogin: false
-            },
-            remainingUpdates: 3 - user.profileUpdates.count,
-            token
-        });
-
-    } catch (error) {
-        console.error('Profile update error:', error);
-        res.status(500).json({ error: "Failed to update profile" });
-    }
-});
-
 // Get user profile
 router.get('/profile', auth, async (req, res) => {
     try {
@@ -410,11 +310,7 @@ router.get('/profile', auth, async (req, res) => {
                 firstname: user.firstname,
                 lastname: user.lastname,
                 email: user.email,
-                isFirstLogin: user.isFirstLogin,
-                profileUpdates: {
-                    count: user.profileUpdates.count,
-                    remaining: 3 - user.profileUpdates.count
-                }
+                isFirstLogin: user.isFirstLogin
             }
         });
     } catch (error) {
