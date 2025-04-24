@@ -3,6 +3,42 @@ const router = express.Router();
 const Communication = require('../models/Communication');
 const auth = require('../middleware/authMiddleware');
 
+// Search messages
+router.get('/search', auth, async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.json([]);
+    }
+
+    const searchRegex = new RegExp(q, 'i');
+    const messages = await Communication.find({
+      $or: [
+        { subject: searchRegex },
+        { content: searchRegex },
+        { sender: searchRegex },
+        { recipient: searchRegex }
+      ],
+      $and: [
+        {
+          $or: [
+            { sender: req.user.email },
+            { recipient: req.user.email }
+          ]
+        }
+      ]
+    })
+    .sort({ timestamp: -1 })
+    .limit(50)
+    .lean();
+
+    res.json(messages);
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'Failed to perform search' });
+  }
+});
+
 // Get inbox messages
 router.get('/inbox', auth, async (req, res) => {
   try {

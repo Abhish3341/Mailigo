@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import SearchBar from '../UI/SearchBar';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -8,19 +8,17 @@ const Header: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   const handleSearch = async (query: string) => {
     if (!query.trim()) {
-      setSearchResults([]);
+      if (location.pathname.includes('/search')) {
+        navigate(-1);
+      }
       return;
     }
 
     try {
-      const response = await axiosInstance.get(`/api/communications/search?q=${encodeURIComponent(query)}`);
-      setSearchResults(response.data);
-      
-      // If we have results and we're not already on the search page, navigate there
+      const response = await axiosInstance.get(`/communications/search?q=${encodeURIComponent(query)}`);
       if (response.data.length > 0 && !location.pathname.includes('/search')) {
         navigate(`/search?q=${encodeURIComponent(query)}`);
       }

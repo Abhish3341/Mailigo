@@ -1,6 +1,6 @@
-
 import React, { useState, useCallback } from 'react';
 import { Search, X } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { debounce } from '../../utils/helpers';
 
 interface SearchBarProps {
@@ -14,13 +14,18 @@ const SearchBar: React.FC<SearchBarProps> = ({
 }) => {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Debounce search to avoid too many API calls
   const debouncedSearch = useCallback(
     debounce((searchQuery: string) => {
       onSearch(searchQuery);
+      if (searchQuery && !location.pathname.includes('/search')) {
+        navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      }
     }, 300),
-    [onSearch]
+    [onSearch, navigate, location.pathname]
   );
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,6 +37,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const clearSearch = () => {
     setQuery('');
     onSearch('');
+    if (location.pathname.includes('/search')) {
+      navigate(-1);
+    }
   };
 
   return (

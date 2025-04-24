@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { User } from '../types';
-import { decodeToken } from '../utils/tokenUtils';
+import axiosInstance from '../utils/axiosConfig';
 
 interface AuthContextProps {
   user: User | null;
@@ -20,17 +20,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initAuth = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('token');
         const storedUser = localStorage.getItem('user');
         
         if (token && storedUser) {
           const userData = JSON.parse(storedUser);
           setUser(userData);
+          
+          // Verify token and get fresh user data
+          const response = await axiosInstance.get('/auth/profile');
+          if (response.data.user) {
+            setUser(response.data.user);
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+          }
         }
       } catch (error) {
-        console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('auth_token');
+        console.error('Error initializing auth:', error);
+        localStorage.removeItem('token');
         localStorage.removeItem('user');
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -42,10 +50,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (token: string, userData: User) => {
     setLoading(true);
     try {
-      localStorage.setItem('auth_token', token);
+      localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
     } finally {
       setLoading(false);
     }
@@ -59,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setLoading(true);
     try {
-      localStorage.removeItem('auth_token');
+      localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);
     } finally {

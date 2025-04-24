@@ -23,9 +23,15 @@ const SearchResults: React.FC = () => {
 
       try {
         setLoading(true);
-        const response = await axiosInstance.get(`/communications/search?q=${encodeURIComponent(query)}`);
-        setResults(response.data);
         setError(null);
+        const response = await axiosInstance.get(`/communications/search?q=${encodeURIComponent(query)}`);
+        
+        // Remove duplicates based on _id
+        const uniqueResults = Array.from(
+          new Map(response.data.map((item: Email) => [item._id, item])).values()
+        );
+        
+        setResults(uniqueResults);
       } catch (err) {
         console.error('Search error:', err);
         setError('Failed to perform search. Please try again.');
