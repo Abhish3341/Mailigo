@@ -46,7 +46,7 @@ const communicationSchema = new mongoose.Schema({
   }
 });
 
-// Index for faster queries
+// Indexes for faster queries
 communicationSchema.index({ recipient: 1, type: 1 });
 communicationSchema.index({ sender: 1, type: 1 });
 communicationSchema.index({ timestamp: -1 });

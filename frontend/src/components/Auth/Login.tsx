@@ -4,9 +4,8 @@ import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-
 const Login: React.FC = () => {
-  const { login, loading } = useAuth();
+  const { login } = useAuth();
   const [error, setError] = React.useState<string>('');
   const [isLoading, setIsLoading] = React.useState(false);
   const navigate = useNavigate();
@@ -15,6 +14,8 @@ const Login: React.FC = () => {
     onSuccess: async (response) => {
       try {
         setIsLoading(true);
+        setError('');
+
         // Get user info from Google
         const userInfo = await axios.get(
           'https://www.googleapis.com/oauth2/v3/userinfo',
@@ -25,20 +26,30 @@ const Login: React.FC = () => {
 
         // Send user data to backend
         const backendResponse = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/auth/google`,
-          userInfo.data
+          'http://localhost:8000/api/auth/google',
+          {
+            email: userInfo.data.email,
+            given_name: userInfo.data.given_name,
+            family_name: userInfo.data.family_name,
+            picture: userInfo.data.picture,
+            sub: userInfo.data.sub
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
         );
 
         if (backendResponse.data.token) {
-          // Save token to localStorage and update auth context
           await login(backendResponse.data.token, backendResponse.data.user);
           navigate('/dashboard');
         } else {
           throw new Error('No token received from server');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Login error:', error);
-        setError('Failed to login. Please try again.');
+        setError(error.response?.data?.error || 'Failed to login. Please try again.');
       } finally {
         setIsLoading(false);
       }

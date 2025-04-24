@@ -6,10 +6,16 @@ const auth = require('../middleware/authMiddleware');
 // Get inbox messages
 router.get('/inbox', auth, async (req, res) => {
   try {
+    if (!req.user || !req.user.email) {
+      return res.status(401).json({ error: 'User email not found in token' });
+    }
+
     const messages = await Communication.find({
       recipient: req.user.email,
       type: 'received'
-    }).sort({ timestamp: -1 });
+    })
+    .sort({ timestamp: -1 })
+    .lean();
 
     res.json(messages);
   } catch (error) {
@@ -21,11 +27,16 @@ router.get('/inbox', auth, async (req, res) => {
 // Get sent messages
 router.get('/sent', auth, async (req, res) => {
   try {
+    if (!req.user || !req.user.email) {
+      return res.status(401).json({ error: 'User email not found in token' });
+    }
+
     const messages = await Communication.find({
       sender: req.user.email,
-      type: 'sent',
-      recipient: { $ne: req.user.email } // Exclude self-sent messages
-    }).sort({ timestamp: -1 });
+      type: 'sent'
+    })
+    .sort({ timestamp: -1 })
+    .lean();
 
     res.json(messages);
   } catch (error) {
@@ -34,9 +45,41 @@ router.get('/sent', auth, async (req, res) => {
   }
 });
 
+// Mark message as read
+router.put('/:id/read', auth, async (req, res) => {
+  try {
+    if (!req.user || !req.user.email) {
+      return res.status(401).json({ error: 'User email not found in token' });
+    }
+
+    const message = await Communication.findOneAndUpdate(
+      { 
+        _id: req.params.id, 
+        recipient: req.user.email,
+        type: 'received'
+      },
+      { $set: { read: true } },
+      { new: true }
+    ).lean();
+
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    res.json(message);
+  } catch (error) {
+    console.error('Error marking message as read:', error);
+    res.status(500).json({ error: 'Failed to update message' });
+  }
+});
+
 // Send new message
 router.post('/send', auth, async (req, res) => {
   try {
+    if (!req.user || !req.user.email) {
+      return res.status(401).json({ error: 'User email not found in token' });
+    }
+
     const { to, subject, content } = req.body;
 
     // Prevent sending to self
@@ -44,7 +87,8 @@ router.post('/send', auth, async (req, res) => {
       return res.status(400).json({ error: 'You cannot send emails to yourself' });
     }
 
-    const newMessage = await Communication.create({
+    // Create sent message
+    const sentMessage = await Communication.create({
       userId: req.user.id,
       type: 'sent',
       subject,
@@ -55,7 +99,7 @@ router.post('/send', auth, async (req, res) => {
       timestamp: new Date()
     });
 
-    // Create a corresponding received message for the recipient
+    // Create received message for recipient
     await Communication.create({
       type: 'received',
       subject,
@@ -66,30 +110,10 @@ router.post('/send', auth, async (req, res) => {
       timestamp: new Date()
     });
 
-    res.status(201).json(newMessage);
+    res.status(201).json(sentMessage);
   } catch (error) {
     console.error('Error sending message:', error);
     res.status(500).json({ error: 'Failed to send message' });
-  }
-});
-
-// Mark message as read
-router.patch('/:id/read', auth, async (req, res) => {
-  try {
-    const message = await Communication.findOneAndUpdate(
-      { _id: req.params.id, recipient: req.user.email },
-      { $set: { read: true } },
-      { new: true }
-    );
-
-    if (!message) {
-      return res.status(404).json({ error: 'Message not found' });
-    }
-
-    res.json(message);
-  } catch (error) {
-    console.error('Error marking message as read:', error);
-    res.status(500).json({ error: 'Failed to update message' });
   }
 });
 

@@ -29,7 +29,7 @@ const ComposeEmail: React.FC = () => {
     
     try {
       setSending(true);
-      await axiosInstance.post('/api/communications/send', {
+      await axiosInstance.post('/communications/send', {
         to,
         subject,
         content

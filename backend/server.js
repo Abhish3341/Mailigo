@@ -4,31 +4,49 @@ const dotenv = require('dotenv');
 const connectDB = require('./database/db');
 const routes = require('./routes');
 
-require('dotenv').config();
+// Load environment variables
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8000;
 
 // Connect to MongoDB
 connectDB();
 
-// Middleware
+// CORS configuration
 app.use(cors({
-  origin: process.env.CLIENT_URL,
-  credentials: true
+  origin: 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
 
-// Routes
+// JSON parser middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Debug middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
+
+// API Routes
 app.use('/api', routes);
 
-// Error handling middleware
+// Error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Server Error:', err);
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
 });

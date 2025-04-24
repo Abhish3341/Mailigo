@@ -1,11 +1,12 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:8000',
+    baseURL: 'http://localhost:8000/api',
     headers: {
         'Content-Type': 'application/json'
     },
-    timeout: 5000
+    withCredentials: true,
+    timeout: 10000
 });
 
 // Add request interceptor
@@ -18,30 +19,22 @@ axiosInstance.interceptors.request.use(
         return config;
     },
     (error) => {
+        console.error('Request error:', error);
         return Promise.reject(error);
     }
 );
 
-// Add response interceptor with better error handling
+// Add response interceptor
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 500) {
-            console.error('Server error:', error.response.data);
-            // Return default stats data if stats endpoint fails
-            if (error.config.url === '/api/problems/stats') {
-                return Promise.resolve({
-                    data: {
-                        problemsSolved: 0,
-                        totalProblems: 0,
-                        successRate: 0,
-                        averageTime: 0,
-                        ranking: 0
-                    }
-                });
-            }
-            return Promise.reject(new Error('An internal server error occurred. Please try again later.'));
+        if (error.response?.status === 401) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+            return Promise.reject(new Error('Session expired. Please login again.'));
         }
+        
         return Promise.reject(error);
     }
 );

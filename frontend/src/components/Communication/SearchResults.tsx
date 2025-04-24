@@ -23,7 +23,7 @@ const SearchResults: React.FC = () => {
 
       try {
         setLoading(true);
-        const response = await axiosInstance.get(`/api/communications/search?q=${encodeURIComponent(query)}`);
+        const response = await axiosInstance.get(`/communications/search?q=${encodeURIComponent(query)}`);
         setResults(response.data);
         setError(null);
       } catch (err) {
