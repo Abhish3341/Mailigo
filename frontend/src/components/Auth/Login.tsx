@@ -33,11 +33,6 @@ const Login: React.FC = () => {
             family_name: userInfo.data.family_name,
             picture: userInfo.data.picture,
             sub: userInfo.data.sub
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json'
-            }
           }
         );
 

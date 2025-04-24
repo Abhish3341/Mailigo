@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  googleId: String,
+  googleId: {
+    type: String,
+    required: true,
+    unique: true
+  },
   firstname: String,
   lastname: String,
   email: {
@@ -9,13 +13,18 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  password: String,
   picture: String,
   isFirstLogin: {
     type: Boolean,
     default: true
   },
-  previousPasswords: [String],
+  profileUpdates: {
+    count: {
+      type: Number,
+      default: 0
+    },
+    lastUpdate: Date
+  },
   createdAt: {
     type: Date,
     default: Date.now
