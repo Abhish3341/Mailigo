@@ -6,6 +6,12 @@ export default defineConfig({
   server: {
     port: 5173,
     host: 'localhost',
-    open: true // This will automatically open the browser
+    open: true
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    minify: true,
+    target: 'es2018'
   }
 })
