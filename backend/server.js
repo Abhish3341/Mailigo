@@ -14,21 +14,8 @@ const PORT = process.env.PORT || 8000;
 connectDB();
 
 // CORS configuration
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://your-vercel-app-url.vercel.app' // Replace with your Vercel domain
-];
-
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error('CORS not allowed'), false);
-    }
-    return callback(null, true);
-  },
+  origin: true, // This allows all origins in development
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
