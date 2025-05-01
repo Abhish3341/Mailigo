@@ -26,9 +26,12 @@ const SearchResults: React.FC = () => {
         setError(null);
         const response = await axiosInstance.get(`/communications/search?q=${encodeURIComponent(query)}`);
         
+        // Type assertion to ensure response.data is Email[]
+        const emailResults = response.data as Email[];
+        
         // Remove duplicates based on _id
         const uniqueResults = Array.from(
-          new Map(response.data.map((item: Email) => [item._id, item])).values()
+          new Map(emailResults.map((item) => [item._id, item])).values()
         );
         
         setResults(uniqueResults);

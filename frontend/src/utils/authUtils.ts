@@ -1,29 +1,41 @@
 import axios from 'axios';
 
-export const refreshToken = async () => {
-    try {
-        const currentToken = localStorage.getItem('auth_token');
-        if (!currentToken) {
-            throw new Error('No token found');
-        }
+const axiosInstance = axios.create({
+    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    withCredentials: true,
+    timeout: 10000
+});
 
-        const response = await axios.post(
-            `${import.meta.env.VITE_API_BASE_URL}/auth/refresh-token`,
-            {},
-            {
-                headers: {
-                    'Authorization': `Bearer ${currentToken}`
-                }
-            }
-        );
-
-        if (response.data.token) {
-            localStorage.setItem('auth_token', response.data.token);
-            return response.data.token;
+// Add request interceptor
+axiosInstance.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
         }
-    } catch (error) {
-        console.error('Token refresh failed:', error);
-        localStorage.removeItem('auth_token');
-        window.location.href = '/login';
+        return config;
+    },
+    (error) => {
+        console.error('Request error:', error);
+        return Promise.reject(error);
     }
-};
+);
+
+// Add response interceptor
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+            return Promise.reject(new Error('Session expired. Please login again.'));
+        }
+        return Promise.reject(error);
+    }
+);
+
+export default axiosInstance;

@@ -7,7 +7,7 @@ import ThemeToggle from '../UI/ThemeToggle';
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout, loading } = useAuth();
+  const { user, logout } = useAuth();
   const [isExpanded, setIsExpanded] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -135,4 +135,4 @@ const Sidebar: React.FC = () => {
   );
 };
 
-export default Sidebar
+export default Sidebar;
