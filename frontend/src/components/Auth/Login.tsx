@@ -26,13 +26,19 @@ const Login: React.FC = () => {
 
         // Send user data to backend
         const backendResponse = await axios.post(
-          'http://localhost:8000/api/auth/google',
+          `${import.meta.env.VITE_API_BASE_URL}/auth/google`,
           {
             email: userInfo.data.email,
             given_name: userInfo.data.given_name,
             family_name: userInfo.data.family_name,
             picture: userInfo.data.picture,
             sub: userInfo.data.sub
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            withCredentials: true
           }
         );
 
