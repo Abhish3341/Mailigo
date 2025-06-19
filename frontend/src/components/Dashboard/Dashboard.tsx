@@ -34,7 +34,7 @@ const Dashboard: React.FC = () => {
         Welcome, {user?.firstname} {user?.lastname}
       </h1>
       <div className="text-gray-600 dark:text-gray-300">
-        Start composing emails or check your inbox to get started.
+        Start composing emails & check your inbox to get started.
       </div>
     </div>
   );
