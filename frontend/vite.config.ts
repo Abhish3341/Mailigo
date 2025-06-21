@@ -6,7 +6,11 @@ export default defineConfig({
   server: {
     port: 5173,
     host: 'localhost',
-    open: true
+    open: true,
+    fs: {
+      // Explicitly deny access to these directories
+      deny: ['.git', 'node_modules', 'frontend', '../']
+    }
   },
   build: {
     outDir: 'dist',
